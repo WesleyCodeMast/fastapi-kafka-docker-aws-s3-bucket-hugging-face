@@ -1,1 +1,1 @@
-# flask-docker-aws-s3-bucket-hugging-face
+# flask-ai-s3-bucket-hugging-face

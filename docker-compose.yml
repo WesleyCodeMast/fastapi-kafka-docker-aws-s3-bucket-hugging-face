@@ -1,0 +1,59 @@
+version: "3.9"
+
+services:
+
+  postgres:
+    image: postgres:15.4
+    networks:
+      default:
+        aliases:
+          - postgresql.db.service
+    expose:
+      - 5432
+    environment:
+      POSTGRES_DB: "$DB_NAME"
+      POSTGRES_USER: "$DB_USER"
+      POSTGRES_PASSWORD: "$DB_PASS"
+    volumes:
+      - postgres_volume:/var/lib/postgresql/data/
+
+  redis:
+    image: redis:7.2
+    networks:
+      default:
+        aliases:
+          - redis.cache.service
+    volumes:
+      - redis_volume:/data
+
+  application:
+    build:
+      context: ./
+      dockerfile: docker/python/Dockerfile
+    networks:
+      default:
+        aliases:
+          - application.backend.service
+    expose:
+      - 8000
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+      - redis
+
+  router:
+    build:
+      context: ./
+      dockerfile: ./docker/router/Dockerfile
+    depends_on:
+      - application
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - ./docker/router/etc/nginx/certs:/etc/nginx/certs
+
+volumes:
+  postgres_volume:
+  redis_volume:
